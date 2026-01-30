@@ -31,6 +31,11 @@ export default function Home() {
       setSaldo(res.data.saldo);
       setSaldoBTC(res.data.saldo_btc);
       setPositions(res.data.positions);
+      if (res.data.last_btc_price !== undefined) {
+        setBtcPrice(res.data.last_btc_price);
+        setLastBtcUpdate(Date.now());
+        setBtcElapsed(0);
+      }
       setLoading(false);
     }).catch(() => setLoading(false));
     return () => { socket.disconnect(); };
