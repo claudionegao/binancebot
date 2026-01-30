@@ -1,3 +1,4 @@
 export default function handler(req, res) {
-  res.status(200).json({ message: 'pong' });
+    console.log('Ping recebido');
+    res.status(200).json({ message: 'pong' });
 }
