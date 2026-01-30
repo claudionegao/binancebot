@@ -41,7 +41,6 @@ export default function Home() {
 
     return (
         <div style={{ fontFamily: 'sans-serif', maxWidth: 600, margin: 'auto', padding: 20 }}>
-            <h1>Binance Bot Dashboard</h1>
             {loading ? (
                 <p>Carregando dados...</p>
             ) : (
