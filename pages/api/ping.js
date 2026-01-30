@@ -1,4 +1,5 @@
+//rota ping responde pong
+// API simples de ping para teste
 export default function handler(req, res) {
-    console.log('Ping recebido');
-    res.status(200).json({ message: 'pong' });
+  res.status(200).json({ message: 'pong' });
 }
