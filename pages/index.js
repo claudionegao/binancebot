@@ -10,6 +10,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const SOCKET_URL = 'https://binancesocket.onrender.com';
   const API_URL = 'https://binancesocket.onrender.com';
+  const totalBloqueado = saldo + (saldoBTC * btcPrice);
 
   useEffect(() => {
     const socket = io(SOCKET_URL, { transports: ['websocket'] });
@@ -41,6 +42,7 @@ export default function Home() {
           <p><strong>Saldo USD:</strong> ${saldo}</p>
           <p><strong>Saldo BTC:</strong> {saldoBTC} BTC</p>
           <p><strong>Preço BTC/USDT:</strong> ${btcPrice}</p>
+          <p><strong>Total bloqueado (USD):</strong> ${totalBloqueado.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
           <h2>Posições</h2>
           <ul>
             {positions && positions.length > 0 ? (
