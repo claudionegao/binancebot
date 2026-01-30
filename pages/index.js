@@ -8,6 +8,8 @@ export default function Home() {
   const [positions, setPositions] = useState([]);
   const [btcPrice, setBtcPrice] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [lastBtcUpdate, setLastBtcUpdate] = useState(Date.now());
+  const [btcElapsed, setBtcElapsed] = useState(0);
   const SOCKET_URL = 'https://binancesocket.onrender.com';
   const API_URL = 'https://binancesocket.onrender.com';
   const totalBloqueado = saldo + (saldoBTC * btcPrice);
@@ -22,6 +24,8 @@ export default function Home() {
     });
     socket.on('btc_price', (data) => {
       setBtcPrice(data.price);
+      setLastBtcUpdate(Date.now());
+      setBtcElapsed(0);
     });
     axios.get(`${API_URL}/saldo`).then(res => {
       setSaldo(res.data.saldo);
@@ -32,6 +36,14 @@ export default function Home() {
     return () => { socket.disconnect(); };
   }, []);
 
+  // Atualiza o contador de segundos desde a última atualização do preço do BTC
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBtcElapsed(Math.floor((Date.now() - lastBtcUpdate) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [lastBtcUpdate]);
+
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: 600, margin: 'auto', padding: 20 }}>
       <h1>Binance Bot Dashboard</h1>
@@ -41,7 +53,7 @@ export default function Home() {
         <>
           <p><strong>Saldo USD:</strong> ${saldo}</p>
           <p><strong>Saldo BTC:</strong> {saldoBTC} BTC</p>
-          <p><strong>Preço BTC/USDT:</strong> ${btcPrice}</p>
+          <p><strong>Preço BTC/USDT:</strong> ${btcPrice} <span style={{fontSize:12, color:'#888'}}>({btcElapsed}s desde última atualização)</span></p>
           <p><strong>Total bloqueado (USD):</strong> ${totalBloqueado.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
           <h2>Posições</h2>
           <ul>
