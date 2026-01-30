@@ -51,10 +51,14 @@ export default function Home() {
         <p>Carregando dados...</p>
       ) : (
         <>
-          <p><strong>Saldo USD:</strong> ${saldo}</p>
-          <p><strong>Saldo BTC:</strong> {saldoBTC} BTC</p>
-          <p><strong>Preço BTC/USDT:</strong> ${btcPrice} <span style={{fontSize:12, color:'#888'}}>({btcElapsed}s desde última atualização)</span></p>
-          <p><strong>Total bloqueado (USD):</strong> ${totalBloqueado.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+          <p><strong>Saldo USD:</strong> ${saldo.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+          <p><strong>Saldo BTC:</strong> {saldoBTC} BTC<span style={{fontSize:12, color:'#888'}}> valor Bloqueado em USDT: ({(saldoBTC * btcPrice).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD)</span></p>
+          <p><strong>Preço BTC/USDT:</strong> ${btcPrice} <span style={{fontSize:12, color:'#888'}}>({
+            btcElapsed < 60
+              ? `${btcElapsed}s`
+              : `${Math.floor(btcElapsed / 60)}m ${btcElapsed % 60}s`
+          } desde última atualização)</span></p>
+          <p><strong>Total bloqueado (USD):</strong> ${(saldo + (saldoBTC * btcPrice)).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
           <h2>Posições</h2>
           <ul>
             {positions && positions.length > 0 ? (
