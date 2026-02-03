@@ -106,7 +106,7 @@ export default function Home() {
               {index + 1}. 
               {item.direction === 'up' && <FaArrowUp color="green" />}
               {item.direction === 'down' && <FaArrowDown color="red" />}
-              <span>{item.diff.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <span>${item.diff.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </li>
           ))}
       </ul>
