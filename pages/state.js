@@ -36,6 +36,18 @@ export default function paginastatus() {
         
         
         */
+       const { saldoUSD, saldoBTC, positions, movimentacoes_de_lote, ultimosPrecosRapida, ultimosPrecosLenta, BTC_PRICE, MAX_LOTES, MEDIA_LENTA_N, MEDIA_RAPIDA_N, COOLDOWN_LOTES, MEDIA_RAPIDA, prev_MEDIA_RAPIDA, movimentacao_rapida, MEDIA_LENTA, prev_MEDIA_LENTA, movimentacao_lenta, LUCRO_MINIMO_PERCENT, STOP_LOSS_PERCENT, PERCENTUAL_COMPRA, PERCENTUAL_VENDA, THRESHOLD_CONFIRMACAO } = data;
+        console.clear();
+        console.log("Saldo USD:", saldoUSD);
+        console.log("Saldo BTC:", saldoBTC);
+        console.log("Preço BTC:", BTC_PRICE);
+        console.log("Posições:", positions);
+        console.log("Movimentações de Lote:", movimentacoes_de_lote);
+        console.log("Últimos Preços Rápida:", ultimosPrecosRapida);
+        console.log("Últimos Preços Lenta:", ultimosPrecosLenta);
+        console.log("Média Rápida:", MEDIA_RAPIDA, "Anterior:", prev_MEDIA_RAPIDA, "Movimentação Rápida:", movimentacao_rapida);
+        console.log("Média Lenta:", MEDIA_LENTA, "Anterior:", prev_MEDIA_LENTA, "Movimentação Lenta:", movimentacao_lenta);
+
     })
 
     return (<p>State</p>)
