@@ -1,54 +1,193 @@
+'use client';
+import { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import styles from '../styles/Home.module.css';
+
 const SOCKET_URL = 'https://binancesocket.onrender.com';
 
+export default function PaginaStatus() {
+    const [state, setState] = useState(null);
+    const [connected, setConnected] = useState(false);
 
-export default function paginastatus() {
-    const socket = io(SOCKET_URL, { transports: ['websocket'] });
-    socket.on('state', (data) => {
-        /*
-        exibir dados nesse padrão limpando a cada iteração
+    useEffect(() => {
+        const socket = io(SOCKET_URL, { transports: ['websocket'] });
 
-        const state = {
-  saldoUSD: 100.0,
-  saldoBTC: 0.0,
-  positions: [], // [{ quantidadeBTC, precoCompra, timestamp }]
-  movimentacoes_de_lote: [],
-  ultimosPrecosRapida: [], // armazena os últimos 5 preços do BTC
-  ultimosPrecosLenta: [], // armazena os últimos 20 preços do BTC
-  BTC_PRICE: null,
-  MAX_LOTES: 5,
-  MEDIA_LENTA_N: 100,
-  MEDIA_RAPIDA_N: 20,
-  COOLDOWN_LOTES: 60,
-  MEDIA_RAPIDA: null,
-  prev_MEDIA_RAPIDA: null,
-  movimentacao_rapida: null,
-  MEDIA_LENTA: null,
-  prev_MEDIA_LENTA: null,
-  movimentacao_lenta: null,
-  // Configurações de venda
-  LUCRO_MINIMO_PERCENT: 0.5, // Vender se lucro >= 0.5%
-  STOP_LOSS_PERCENT: -1.0,   // Vender se prejuízo <= -1%
-  PERCENTUAL_COMPRA: 5,       // Compra com 5% do saldo USD
-  PERCENTUAL_VENDA: 5,      // Vende 5% do saldo BTC por lote
-  THRESHOLD_CONFIRMACAO: 60,
-};
-        
-        
-        */
-       const { saldoUSD, saldoBTC, positions, movimentacoes_de_lote, ultimosPrecosRapida, ultimosPrecosLenta, BTC_PRICE, MAX_LOTES, MEDIA_LENTA_N, MEDIA_RAPIDA_N, COOLDOWN_LOTES, MEDIA_RAPIDA, prev_MEDIA_RAPIDA, movimentacao_rapida, MEDIA_LENTA, prev_MEDIA_LENTA, movimentacao_lenta, LUCRO_MINIMO_PERCENT, STOP_LOSS_PERCENT, PERCENTUAL_COMPRA, PERCENTUAL_VENDA, THRESHOLD_CONFIRMACAO } = data;
-        console.clear();
-        console.log("Saldo USD:", saldoUSD);
-        console.log("Saldo BTC:", saldoBTC);
-        console.log("Preço BTC:", BTC_PRICE);
-        console.log("Posições:", positions);
-        console.log("Movimentações de Lote:", movimentacoes_de_lote);
-        console.log("Últimos Preços Rápida:", ultimosPrecosRapida);
-        console.log("Últimos Preços Lenta:", ultimosPrecosLenta);
-        console.log("Média Rápida:", MEDIA_RAPIDA, "Anterior:", prev_MEDIA_RAPIDA, "Movimentação Rápida:", movimentacao_rapida);
-        console.log("Média Lenta:", MEDIA_LENTA, "Anterior:", prev_MEDIA_LENTA, "Movimentação Lenta:", movimentacao_lenta);
+        socket.on('connect', () => {
+            setConnected(true);
+        });
 
-    })
+        socket.on('disconnect', () => {
+            setConnected(false);
+        });
 
-    return (<p>State</p>)
+        socket.on('state', (data) => {
+            setState(data);
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, []);
+
+    if (!state) {
+        return (
+            <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
+                <h1>Status do Bot</h1>
+                <p style={{ color: connected ? 'green' : 'red' }}>
+                    {connected ? 'Conectado' : 'Desconectado'}
+                </p>
+                <p>Aguardando dados...</p>
+            </div>
+        );
+    }
+
+    const {
+        saldoUSD,
+        saldoBTC,
+        positions,
+        movimentacoes_de_lote,
+        ultimosPrecosRapida,
+        ultimosPrecosLenta,
+        BTC_PRICE,
+        MAX_LOTES,
+        MEDIA_LENTA_N,
+        MEDIA_RAPIDA_N,
+        COOLDOWN_LOTES,
+        MEDIA_RAPIDA,
+        prev_MEDIA_RAPIDA,
+        movimentacao_rapida,
+        MEDIA_LENTA,
+        prev_MEDIA_LENTA,
+        movimentacao_lenta,
+        LUCRO_MINIMO_PERCENT,
+        STOP_LOSS_PERCENT,
+        PERCENTUAL_COMPRA,
+        PERCENTUAL_VENDA,
+        THRESHOLD_CONFIRMACAO,
+    } = state;
+
+    return (
+        <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+            <h1>📊 Status do Bot de Trading</h1>
+            <p style={{ color: connected ? 'green' : 'red', fontSize: '16px', fontWeight: 'bold' }}>
+                {connected ? '🟢 Conectado' : '🔴 Desconectado'}
+            </p>
+
+            {/* Saldos */}
+            <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <h2>💰 Saldos</h2>
+                <p><strong>Saldo USD:</strong> ${saldoUSD?.toFixed(2) || '0.00'}</p>
+                <p><strong>Saldo BTC:</strong> {saldoBTC?.toFixed(8) || '0.00000000'} BTC</p>
+            </section>
+
+            {/* Preço Atual */}
+            <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <h2>📈 Preço Atual</h2>
+                <p><strong>BTC Price:</strong> ${BTC_PRICE?.toFixed(2) || 'N/A'}</p>
+            </section>
+
+            {/* Médias */}
+            <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <h2>📊 Médias Móveis</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div style={{ borderLeft: '4px solid #0066cc', paddingLeft: '10px' }}>
+                        <h3>Média Rápida (N={MEDIA_RAPIDA_N})</h3>
+                        <p><strong>Valor:</strong> ${MEDIA_RAPIDA?.toFixed(2) || 'N/A'}</p>
+                        <p><strong>Anterior:</strong> ${prev_MEDIA_RAPIDA?.toFixed(2) || 'N/A'}</p>
+                        <p><strong>Movimentação:</strong> <span style={{ color: movimentacao_rapida > 0 ? 'green' : 'red' }}>
+                            {movimentacao_rapida > 0 ? '↑' : '↓'} {movimentacao_rapida || 'N/A'}
+                        </span></p>
+                    </div>
+                    <div style={{ borderLeft: '4px solid #cc6600', paddingLeft: '10px' }}>
+                        <h3>Média Lenta (N={MEDIA_LENTA_N})</h3>
+                        <p><strong>Valor:</strong> ${MEDIA_LENTA?.toFixed(2) || 'N/A'}</p>
+                        <p><strong>Anterior:</strong> ${prev_MEDIA_LENTA?.toFixed(2) || 'N/A'}</p>
+                        <p><strong>Movimentação:</strong> <span style={{ color: movimentacao_lenta > 0 ? 'green' : 'red' }}>
+                            {movimentacao_lenta > 0 ? '↑' : '↓'} {movimentacao_lenta || 'N/A'}
+                        </span></p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Últimos Preços */}
+            <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <h2>📉 Histórico de Preços</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                        <h3>Últimos Preços Rápida</h3>
+                        <p>{ultimosPrecosRapida?.map((p, i) => `$${p.toFixed(2)}`).join(' → ') || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <h3>Últimos Preços Lenta</h3>
+                        <p>{ultimosPrecosLenta?.slice(0, 5).map((p, i) => `$${p.toFixed(2)}`).join(' → ') || 'N/A'}...</p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Posições */}
+            <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <h2>🎯 Posições Abertas ({positions?.length || 0})</h2>
+                {positions && positions.length > 0 ? (
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr style={{ backgroundColor: '#f0f0f0' }}>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Quantidade BTC</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Preço de Compra</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {positions.map((pos, idx) => (
+                                    <tr key={idx}>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>{pos.quantidadeBTC?.toFixed(8)}</td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>${pos.precoCompra?.toFixed(2)}</td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>{new Date(pos.timestamp).toLocaleString('pt-BR')}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p>Nenhuma posição aberta</p>
+                )}
+            </section>
+
+            {/* Movimentações de Lote */}
+            <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <h2>📋 Movimentações de Lote ({movimentacoes_de_lote?.length || 0})</h2>
+                {movimentacoes_de_lote && movimentacoes_de_lote.length > 0 ? (
+                    <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                        {movimentacoes_de_lote.map((mov, idx) => (
+                            <div key={idx} style={{ padding: '10px', borderBottom: '1px solid #eee', fontSize: '14px' }}>
+                                {mov}
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <p>Nenhuma movimentação registrada</p>
+                )}
+            </section>
+
+            {/* Configurações */}
+            <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                <h2>⚙️ Configurações</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
+                    <div>
+                        <p><strong>MAX_LOTES:</strong> {MAX_LOTES}</p>
+                        <p><strong>COOLDOWN_LOTES:</strong> {COOLDOWN_LOTES}s</p>
+                        <p><strong>THRESHOLD_CONFIRMACAO:</strong> {THRESHOLD_CONFIRMACAO}s</p>
+                    </div>
+                    <div>
+                        <p><strong>LUCRO_MÍNIMO:</strong> {LUCRO_MINIMO_PERCENT}%</p>
+                        <p><strong>STOP_LOSS:</strong> {STOP_LOSS_PERCENT}%</p>
+                    </div>
+                    <div>
+                        <p><strong>PERCENTUAL_COMPRA:</strong> {PERCENTUAL_COMPRA}%</p>
+                        <p><strong>PERCENTUAL_VENDA:</strong> {PERCENTUAL_VENDA}%</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
 }
