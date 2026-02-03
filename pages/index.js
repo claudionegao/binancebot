@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
+import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import axios from 'axios';
 
 const SOCKET_URL = 'https://binancesocket.onrender.com';
@@ -100,24 +101,14 @@ export default function Home() {
 
       <h2>Últimos preços</h2>
       <ul>
-        {lastPrices.map((item, index) => {
-          let arrow = '';
-          let color = '#777';
-          
-          if (item.direction === 'up') {
-            arrow = '🔼';
-            color = 'green';
-          } else if (item.direction === 'down') {
-            arrow = '🔽';
-            color = 'red';
-          }
-          
-          return (
-            <li key={index} style={{ color }}>
-              {index + 1}. {arrow} {item.diff.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        {lastPrices.map((item, index) => (
+            <li key={index}>
+              {index + 1}. 
+              {item.direction === 'up' && <FaArrowUp color="green" />}
+              {item.direction === 'down' && <FaArrowDown color="red" />}
+              <span>{item.diff.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </li>
-          );
-        })}
+          ))}
       </ul>
 
       <p><strong>Total bloqueado (USD):</strong> ${totalBloqueado.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
