@@ -378,7 +378,7 @@ export default function Home() {
                     <p style={{ margin: '4px 0', color: '#666', fontSize: '11px' }}>
                       <strong>Comprado em:</strong> 
                       <span style={{ marginLeft: '8px' }}>
-                        {item.timestamp ? new Date(item.timestamp).toLocaleString('pt-BR') : '-'}
+                        {item.identificador ? new Date(item.identificador).toLocaleString('pt-BR') : '-'}
                       </span>
                     </p>
                     {item.ultimavenda && (
