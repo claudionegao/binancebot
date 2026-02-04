@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import axios from 'axios';
+import Link from 'next/link';
 
 const SOCKET_URL = 'https://binancesocket.onrender.com';
 const API_URL = 'https://binancesocket.onrender.com';
@@ -99,7 +100,22 @@ export default function Home() {
       backgroundColor: '#f5f5f5',
       minHeight: '100vh'
     }}>
-      <h1 style={{ color: '#1f2937', marginBottom: '30px' }}>📊 Binance Bot Dashboard</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <h1 style={{ color: '#1f2937', margin: 0 }}>📊 Binance Bot Dashboard</h1>
+        <Link href="/movimentacoes" style={{
+          textDecoration: 'none',
+          backgroundColor: '#0066cc',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          fontWeight: 'bold',
+          fontSize: '14px',
+          transition: 'background-color 0.3s ease',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          📋 Ver Movimentações
+        </Link>
+      </div>
 
       {/* Cards de Saldos */}
       <div style={{ 
