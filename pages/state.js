@@ -132,17 +132,29 @@ export default function PaginaStatus() {
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
                                 <tr style={{ backgroundColor: '#f0f0f0' }}>
-                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Quantidade BTC</th>
-                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Preço de Compra</th>
-                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Timestamp</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>ID</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Quantidade</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Restante</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Preço Compra</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Vendas</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Última Venda</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Comprado em</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {positions.map((pos, idx) => (
-                                    <tr key={idx}>
+                                    <tr key={pos.identificador || idx}>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '11px' }}>{pos.identificador}</td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>{pos.quantidadeBTC?.toFixed(8)}</td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px', fontWeight: 'bold', color: '#f7931a' }}>{pos.restante?.toFixed(8)}</td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>${pos.precoCompra?.toFixed(2)}</td>
-                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>{new Date(pos.timestamp).toLocaleString('pt-BR')}</td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>{pos.vendasrealizadas || 0}/3</td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '12px' }}>
+                                            {pos.ultimavenda ? new Date(pos.ultimavenda).toLocaleString('pt-BR') : '-'}
+                                        </td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '12px' }}>
+                                            {pos.timestamp ? new Date(pos.timestamp).toLocaleString('pt-BR') : '-'}
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -157,12 +169,35 @@ export default function PaginaStatus() {
             <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <h2>📋 Movimentações de Lote ({movimentacoes_de_lote?.length || 0})</h2>
                 {movimentacoes_de_lote && movimentacoes_de_lote.length > 0 ? (
-                    <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                        {movimentacoes_de_lote.map((mov, idx) => (
-                            <div key={idx} style={{ padding: '10px', borderBottom: '1px solid #eee', fontSize: '14px' }}>
-                                {mov}
-                            </div>
-                        ))}
+                    <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                            <thead style={{ position: 'sticky', top: 0, backgroundColor: '#f0f0f0' }}>
+                                <tr>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Tipo</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Quantidade BTC</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Preço</th>
+                                    <th style={{ border: '1px solid #ddd', padding: '8px' }}>Data/Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {movimentacoes_de_lote.slice().reverse().map((mov, idx) => (
+                                    <tr key={idx} style={{ backgroundColor: mov.tipo === 'compra' ? '#e8f5e9' : '#fff3e0' }}>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px', fontWeight: 'bold' }}>
+                                            {mov.tipo === 'compra' ? '🟢 COMPRA' : '🔴 VENDA'}
+                                        </td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                                            {mov.quantidadeBTC?.toFixed(8)} BTC
+                                        </td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                                            ${(mov.precoCompra || mov.precoVenda)?.toFixed(2)}
+                                        </td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                                            {mov.timestamp ? new Date(mov.timestamp).toLocaleString('pt-BR') : '-'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 ) : (
                     <p>Nenhuma movimentação registrada</p>

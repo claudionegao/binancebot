@@ -7,56 +7,55 @@ const SOCKET_URL = 'https://binancesocket.onrender.com';
 const API_URL = 'https://binancesocket.onrender.com';
 
 export default function Home() {
-  const [saldo, setSaldo] = useState(0);
-  const [saldoBTC, setSaldoBTC] = useState(0);
-  const [positions, setPositions] = useState([]);
-  const [btcPrice, setBtcPrice] = useState(0);
+  const [state, setState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lastBtcUpdate, setLastBtcUpdate] = useState(Date.now());
   const [btcElapsed, setBtcElapsed] = useState(0);
   const [lastPrices, setLastPrices] = useState([]);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
+  const saldo = state?.saldoUSD || 0;
+  const saldoBTC = state?.saldoBTC || 0;
+  const positions = state?.positions || [];
+  const btcPrice = state?.BTC_PRICE || 0;
   const totalBloqueado = saldo + saldoBTC * btcPrice;
+  const COOLDOWN_LOTES = state?.COOLDOWN_LOTES || 60;
 
   useEffect(() => {
     const socket = io(SOCKET_URL, { transports: ['websocket'] });
 
-    socket.on('saldo_atualizado', (data) => {
-      setSaldo(data.saldo);
-      setSaldoBTC(data.saldo_btc);
-      setPositions(data.positions || []);
+    socket.on('state', (data) => {
+      setState(data);
       setLoading(false);
-    });
 
-    socket.on('btc_price', (data) => {
-      setBtcPrice(data.price);
-      setLastBtcUpdate(Date.now());
-      setBtcElapsed(0);
-
-      setLastPrices((prev) => {
-        const last = prev[0]?.price;
-        let direction = 'same';
-        let diff = 0;
-
-        if (last !== undefined) {
-          diff = data.price - last;
-          direction = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
-        }
-
-        const updated = [{ price: data.price, diff, direction }, ...prev];
-        return updated.slice(0, 10);
-      });
-    });
-
-    axios.get(`${API_URL}/saldo`).then((res) => {
-      setSaldo(res.data.saldo);
-      setSaldoBTC(res.data.saldo_btc);
-      setPositions(res.data.positions || []);
-
-      if (res.data.last_btc_price !== undefined) {
-        setBtcPrice(res.data.last_btc_price);
+      // Atualizar o preço do BTC e histórico de preços
+      if (data.BTC_PRICE !== null && data.BTC_PRICE !== undefined) {
         setLastBtcUpdate(Date.now());
-        setLastPrices([{ price: res.data.last_btc_price, diff: 0, direction: 'same' }]);
+        setBtcElapsed(0);
+
+        setLastPrices((prev) => {
+          const last = prev[0]?.price;
+          let direction = 'same';
+          let diff = 0;
+
+          if (last !== undefined) {
+            diff = data.BTC_PRICE - last;
+            direction = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
+          }
+
+          const updated = [{ price: data.BTC_PRICE, diff, direction }, ...prev];
+          return updated.slice(0, 10);
+        });
+      }
+    });
+
+    // Buscar estado inicial via API
+    axios.get(`${API_URL}/saldo`).then((res) => {
+      setState(res.data);
+
+      if (res.data.BTC_PRICE !== undefined && res.data.BTC_PRICE !== null) {
+        setLastBtcUpdate(Date.now());
+        setLastPrices([{ price: res.data.BTC_PRICE, diff: 0, direction: 'same' }]);
       }
 
       setLoading(false);
@@ -68,6 +67,7 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setBtcElapsed(Math.floor((Date.now() - lastBtcUpdate) / 1000));
+      setCurrentTime(Date.now());
     }, 1000);
     return () => clearInterval(interval);
   }, [lastBtcUpdate]);
@@ -233,56 +233,166 @@ export default function Home() {
         ) : (
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
             gap: '15px'
           }}>
-            {positions.map((item, index) => (
-              <div key={index} style={{
-                border: '1px solid #e0e0e0',
-                borderRadius: '8px',
-                padding: '15px',
-                backgroundColor: '#fafafa',
-                transition: 'all 0.3s ease'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: '12px',
-                  paddingBottom: '12px',
-                  borderBottom: '2px solid #e0e0e0'
+            {positions.map((item, index) => {
+              const lucroPercentual = ((btcPrice - item.precoCompra) / item.precoCompra) * 100;
+              const lucroUSD = (item.restante || 0) * (btcPrice - item.precoCompra);
+              const corLucro = lucroPercentual >= 0 ? '#00c853' : '#d32f2f';
+              
+              // Calcular cooldown
+              const temUltimaVenda = item.ultimavenda && item.ultimavenda > 0;
+              const segundosDesdeVenda = temUltimaVenda 
+                ? Math.floor((currentTime - item.ultimavenda) / 1000) 
+                : 0;
+              const cooldownRestante = Math.max(0, COOLDOWN_LOTES - segundosDesdeVenda);
+              const isActive = !temUltimaVenda || cooldownRestante === 0;
+              
+              return (
+                <div key={item.identificador || index} style={{
+                  border: '1px solid #e0e0e0',
+                  borderRadius: '8px',
+                  padding: '15px',
+                  backgroundColor: '#fafafa',
+                  transition: 'all 0.3s ease'
                 }}>
-                  <span style={{ 
-                    display: 'inline-block',
-                    backgroundColor: '#0066cc',
-                    color: 'white',
-                    padding: '4px 12px',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '12px',
+                    paddingBottom: '12px',
+                    borderBottom: '2px solid #e0e0e0'
                   }}>
-                    Posição #{index + 1}
-                  </span>
+                    <span style={{ 
+                      display: 'inline-block',
+                      backgroundColor: '#0066cc',
+                      color: 'white',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}>
+                      Lote #{index + 1}
+                    </span>
+                    <span style={{
+                      fontSize: '10px',
+                      color: '#999',
+                      fontFamily: 'monospace'
+                    }}>
+                      ID: {item.identificador}
+                    </span>
+                  </div>
+                  
+                  {/* Status do Cooldown */}
+                  <div style={{
+                    backgroundColor: isActive ? '#e8f5e9' : '#fff3e0',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    marginBottom: '12px',
+                    textAlign: 'center',
+                    border: `2px solid ${isActive ? '#00c853' : '#ff9800'}`
+                  }}>
+                    {isActive ? (
+                      <p style={{ margin: '0', fontSize: '14px', fontWeight: 'bold', color: '#00c853' }}>
+                        ✓ ACTIVE
+                      </p>
+                    ) : (
+                      <>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#666' }}>
+                          COOLDOWN
+                        </p>
+                        <p style={{ margin: '0', fontSize: '18px', fontWeight: 'bold', color: '#ff9800' }}>
+                          {cooldownRestante}s
+                        </p>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Lucro/Prejuízo */}
+                  <div style={{
+                    backgroundColor: lucroPercentual >= 0 ? '#e8f5e9' : '#ffebee',
+                    padding: '10px',
+                    borderRadius: '6px',
+                    marginBottom: '12px',
+                    textAlign: 'center'
+                  }}>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '12px', color: '#666' }}>
+                      Resultado
+                    </p>
+                    <p style={{ margin: '0', fontSize: '20px', fontWeight: 'bold', color: corLucro }}>
+                      {lucroPercentual >= 0 ? '+' : ''}{lucroPercentual.toFixed(2)}%
+                    </p>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: corLucro }}>
+                      {lucroUSD >= 0 ? '+' : ''}${lucroUSD.toFixed(2)} USD
+                    </p>
+                  </div>
+
+                  {/* Informações do Lote */}
+                  <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>
+                    <strong style={{ color: '#666' }}>Total Comprado:</strong> 
+                    <span style={{ marginLeft: '8px', fontFamily: 'monospace', float: 'right' }}>
+                      {Number(item.quantidadeBTC || 0).toFixed(8)} BTC
+                    </span>
+                  </p>
+                  <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>
+                    <strong style={{ color: '#666' }}>Restante:</strong> 
+                    <span style={{ marginLeft: '8px', fontFamily: 'monospace', float: 'right', color: '#f7931a', fontWeight: 'bold' }}>
+                      {Number(item.restante || 0).toFixed(8)} BTC
+                    </span>
+                  </p>
+                  <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>
+                    <strong style={{ color: '#666' }}>Preço Compra:</strong> 
+                    <span style={{ marginLeft: '8px', fontFamily: 'monospace', float: 'right' }}>
+                      ${Number(item.precoCompra || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </p>
+                  <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>
+                    <strong style={{ color: '#666' }}>Vendas Realizadas:</strong> 
+                    <span style={{ marginLeft: '8px', float: 'right' }}>
+                      {item.vendasrealizadas || 0}/3
+                    </span>
+                  </p>
+
+                  {/* Progress Bar de Vendas */}
+                  <div style={{ marginTop: '12px' }}>
+                    <div style={{
+                      width: '100%',
+                      height: '6px',
+                      backgroundColor: '#e0e0e0',
+                      borderRadius: '3px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        width: `${((item.vendasrealizadas || 0) / 3) * 100}%`,
+                        height: '100%',
+                        backgroundColor: '#0066cc',
+                        transition: 'width 0.3s ease'
+                      }} />
+                    </div>
+                  </div>
+
+                  {/* Timestamp e Última Venda */}
+                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e0e0e0' }}>
+                    <p style={{ margin: '4px 0', color: '#666', fontSize: '11px' }}>
+                      <strong>Comprado em:</strong> 
+                      <span style={{ marginLeft: '8px' }}>
+                        {item.timestamp ? new Date(item.timestamp).toLocaleString('pt-BR') : '-'}
+                      </span>
+                    </p>
+                    {item.ultimavenda && (
+                      <p style={{ margin: '4px 0', color: '#666', fontSize: '11px' }}>
+                        <strong>Última venda:</strong> 
+                        <span style={{ marginLeft: '8px' }}>
+                          {new Date(item.ultimavenda).toLocaleString('pt-BR')}
+                        </span>
+                      </p>
+                    )}
+                  </div>
                 </div>
-                
-                <p style={{ margin: '8px 0', color: '#333' }}>
-                  <strong style={{ color: '#666' }}>Quantidade:</strong> 
-                  <span style={{ marginLeft: '8px', fontFamily: 'monospace' }}>{Number(item.quantidade).toFixed(8)} BTC</span>
-                </p>
-                <p style={{ margin: '8px 0', color: '#333' }}>
-                  <strong style={{ color: '#666' }}>Preço:</strong> 
-                  <span style={{ marginLeft: '8px', fontFamily: 'monospace' }}>
-                    ${Number(item.preco).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </p>
-                <p style={{ margin: '8px 0', color: '#666', fontSize: '12px' }}>
-                  <strong>Timestamp:</strong> 
-                  <span style={{ marginLeft: '8px' }}>
-                    {item.timestamp ? new Date(item.timestamp).toLocaleString('pt-BR') : '-'}
-                  </span>
-                </p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
