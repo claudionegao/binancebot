@@ -145,7 +145,7 @@ export default function PaginaStatus() {
                                 {positions.map((pos, idx) => (
                                     <tr key={pos.identificador || idx}>
                                         <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '11px' }}>{pos.identificador}</td>
-                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>{pos.quantidade?.toFixed(8)}</td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>{pos.quantidadeBTC?.toFixed(8)}</td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px', fontWeight: 'bold', color: '#f7931a' }}>{pos.restante?.toFixed(8)}</td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>${pos.precoCompra?.toFixed(2)}</td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>{pos.vendasrealizadas || 0}/3</td>
@@ -183,10 +183,10 @@ export default function PaginaStatus() {
                                 {movimentacoes_de_lote.slice().reverse().map((mov, idx) => (
                                     <tr key={idx} style={{ backgroundColor: mov.tipo === 'compra' ? '#e8f5e9' : '#fff3e0' }}>
                                         <td style={{ border: '1px solid #ddd', padding: '8px', fontWeight: 'bold' }}>
-                                            {mov.tipo === 'compra' ? '🟢 COMPRA' : '🔴 VENDA'}
+                                            {mov.tipo === 'compra' ? '🟢 COMPRA' : mov.tipo === 'stop loss' ? '🔴 STOP LOSS' : '🔴 TAKE PROFIT'}
                                         </td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                                            {mov.quantidade?.toFixed(8)} BTC
+                                            {mov.quantidadeBTC?.toFixed(8)} BTC
                                         </td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>
                                             ${(mov.precoCompra || mov.precoVenda)?.toFixed(2)}

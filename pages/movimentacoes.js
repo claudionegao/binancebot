@@ -267,7 +267,7 @@ export default function Movimentacoes() {
                                                     color: 'white',
                                                     fontSize: '12px'
                                                 }}>
-                                                    {isCompra ? '🟢 COMPRA' : '🔴 VENDA'}
+                                                    {mov.tipo === 'compra' ? '🟢 COMPRA' : mov.tipo === 'stop loss' ? '🔴 STOP LOSS' : '🔴 TAKE PROFIT'}
                                                 </span>
                                             </td>
                                             <td style={{
