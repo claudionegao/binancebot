@@ -29,7 +29,7 @@ export default function App() {
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' ou 'movimentacoes'
 
   const saldo = state?.saldoUSD || 0;
-  const saldoCrypto = state?.saldoCrypto || 0;
+  const saldoCrypto = state?.saldo || 0;
   const positions = state?.positions || [];
   const movimentacoes_de_lote = state?.movimentacoes_de_lote || [];
   const CryptoPrice = state?.PRICE || 0;

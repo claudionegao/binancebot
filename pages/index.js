@@ -16,7 +16,7 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   const saldo = state?.saldoUSD || 0;
-  const saldoCrypto = state?.saldoCrypto || 0;
+  const saldoCrypto = state?.saldo || 0;
   const positions = state?.positions || [];
   const CryptoPrice = state?.PRICE || 0;
   const totalBloqueado = saldo + saldoCrypto * CryptoPrice;
