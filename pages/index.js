@@ -16,10 +16,10 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   const saldo = state?.saldoUSD || 0;
-  const saldoBTC = state?.saldoBTC || 0;
+  const saldo = state?.saldo || 0;
   const positions = state?.positions || [];
-  const btcPrice = state?.BTC_PRICE || 0;
-  const totalBloqueado = saldo + saldoBTC * btcPrice;
+  const CryptoPrice = state?.Price || 0;
+  const totalBloqueado = saldo + saldo * CryptoPrice;
   const COOLDOWN_LOTES = state?.COOLDOWN_LOTES || 60;
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function Home() {
       setLoading(false);
 
       // Atualizar o preço do BTC e histórico de preços
-      if (data.BTC_PRICE !== null && data.BTC_PRICE !== undefined) {
+      if (data.Price !== null && data.Price !== undefined) {
         setLastBtcUpdate(Date.now());
         setBtcElapsed(0);
 
@@ -40,11 +40,11 @@ export default function Home() {
           let diff = 0;
 
           if (last !== undefined) {
-            diff = data.BTC_PRICE - last;
+            diff = data.Price - last;
             direction = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
           }
 
-          const updated = [{ price: data.BTC_PRICE, diff, direction }, ...prev];
+          const updated = [{ price: data.Price, diff, direction }, ...prev];
           return updated.slice(0, 10);
         });
       }
@@ -54,9 +54,9 @@ export default function Home() {
     axios.get(`${API_URL}/saldo`).then((res) => {
       setState(res.data);
 
-      if (res.data.BTC_PRICE !== undefined && res.data.BTC_PRICE !== null) {
+      if (res.data.Price !== undefined && res.data.Price !== null) {
         setLastBtcUpdate(Date.now());
-        setLastPrices([{ price: res.data.BTC_PRICE, diff: 0, direction: 'same' }]);
+        setLastPrices([{ price: res.data.Price, diff: 0, direction: 'same' }]);
       }
 
       setLoading(false);
@@ -148,10 +148,10 @@ export default function Home() {
         }}>
           <p style={{ color: '#666', fontSize: '14px', margin: '0 0 8px 0' }}>₿ Saldo BTC</p>
           <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#f7931a', margin: '0' }}>
-            {Number(saldoBTC).toFixed(8)}
+            {Number(saldo).toFixed(8)}
           </p>
           <p style={{ color: '#999', fontSize: '12px', margin: '8px 0 0 0' }}>
-            ${(saldoBTC * btcPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+            ${(saldo * CryptoPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
           </p>
         </div>
 
@@ -165,7 +165,7 @@ export default function Home() {
         }}>
           <p style={{ color: '#666', fontSize: '14px', margin: '0 0 8px 0' }}>📈 Preço BTC/USDT</p>
           <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#00c853', margin: '0' }}>
-            ${btcPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ${CryptoPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
           <p style={{ color: '#999', fontSize: '12px', margin: '8px 0 0 0' }}>
             Atualizado há {btcElapsed < 60 ? `${btcElapsed}s` : `${Math.floor(btcElapsed/60)}m ${btcElapsed%60}s`}
@@ -253,8 +253,8 @@ export default function Home() {
             gap: '15px'
           }}>
             {positions.map((item, index) => {
-              const lucroPercentual = ((btcPrice - item.precoCompra) / item.precoCompra) * 100;
-              const lucroUSD = (item.restante || 0) * (btcPrice - item.precoCompra);
+              const lucroPercentual = ((CryptoPrice - item.precoCompra) / item.precoCompra) * 100;
+              const lucroUSD = (item.restante || 0) * (CryptoPrice - item.precoCompra);
               const corLucro = lucroPercentual >= 0 ? '#00c853' : '#d32f2f';
               
               // Calcular cooldown
@@ -349,7 +349,7 @@ export default function Home() {
                   <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>
                     <strong style={{ color: '#666' }}>Total Comprado:</strong> 
                     <span style={{ marginLeft: '8px', fontFamily: 'monospace', float: 'right' }}>
-                      {Number(item.quantidadeBTC || 0).toFixed(8)} BTC
+                      {Number(item.quantidade || 0).toFixed(8)} BTC
                     </span>
                   </p>
                   <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>

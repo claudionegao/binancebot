@@ -55,10 +55,10 @@ export default function Movimentacoes() {
     // Calcular estatísticas
     const compras = movimentacoes_de_lote.filter(m => m.tipo === 'compra');
     const vendas = movimentacoes_de_lote.filter(m => m.tipo === 'venda');
-    const totalComprado = compras.reduce((acc, m) => acc + (m.quantidadeBTC || 0), 0);
-    const totalVendido = vendas.reduce((acc, m) => acc + (m.quantidadeBTC || 0), 0);
-    const valorTotalCompras = compras.reduce((acc, m) => acc + (m.quantidadeBTC || 0) * (m.precoCompra || 0), 0);
-    const valorTotalVendas = vendas.reduce((acc, m) => acc + (m.quantidadeBTC || 0) * (m.precoVenda || 0), 0);
+    const totalComprado = compras.reduce((acc, m) => acc + (m.quantidade || 0), 0);
+    const totalVendido = vendas.reduce((acc, m) => acc + (m.quantidade || 0), 0);
+    const valorTotalCompras = compras.reduce((acc, m) => acc + (m.quantidade || 0) * (m.precoCompra || 0), 0);
+    const valorTotalVendas = vendas.reduce((acc, m) => acc + (m.quantidade || 0) * (m.precoVenda || 0), 0);
 
     return (
         <div style={{
@@ -239,7 +239,7 @@ export default function Movimentacoes() {
                                 {movimentacoes_de_lote.slice().reverse().map((mov, idx) => {
                                     const isCompra = mov.tipo === 'compra';
                                     const preco = mov.precoCompra || mov.precoVenda || 0;
-                                    const quantidade = mov.quantidadeBTC || 0;
+                                    const quantidade = mov.quantidade || 0;
                                     const valorTotal = quantidade * preco;
 
                                     return (

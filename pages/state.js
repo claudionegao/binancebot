@@ -43,12 +43,12 @@ export default function PaginaStatus() {
 
     const {
         saldoUSD,
-        saldoBTC,
+        saldo,
         positions,
         movimentacoes_de_lote,
         ultimosPrecosRapida,
         ultimosPrecosLenta,
-        BTC_PRICE,
+        Price,
         MAX_LOTES,
         MEDIA_LENTA_N,
         MEDIA_RAPIDA_N,
@@ -77,13 +77,13 @@ export default function PaginaStatus() {
             <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <h2>💰 Saldos</h2>
                 <p><strong>Saldo USD:</strong> ${saldoUSD?.toFixed(2) || '0.00'}</p>
-                <p><strong>Saldo BTC:</strong> {saldoBTC?.toFixed(8) || '0.00000000'} BTC</p>
+                <p><strong>Saldo BTC:</strong> {saldo?.toFixed(8) || '0.00000000'} BTC</p>
             </section>
 
             {/* Preço Atual */}
             <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <h2>📈 Preço Atual</h2>
-                <p><strong>BTC Price:</strong> ${BTC_PRICE?.toFixed(2) || 'N/A'}</p>
+                <p><strong>BTC Price:</strong> ${Price?.toFixed(2) || 'N/A'}</p>
             </section>
 
             {/* Médias */}
@@ -145,7 +145,7 @@ export default function PaginaStatus() {
                                 {positions.map((pos, idx) => (
                                     <tr key={pos.identificador || idx}>
                                         <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '11px' }}>{pos.identificador}</td>
-                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>{pos.quantidadeBTC?.toFixed(8)}</td>
+                                        <td style={{ border: '1px solid #ddd', padding: '8px' }}>{pos.quantidade?.toFixed(8)}</td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px', fontWeight: 'bold', color: '#f7931a' }}>{pos.restante?.toFixed(8)}</td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>${pos.precoCompra?.toFixed(2)}</td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>{pos.vendasrealizadas || 0}/3</td>
@@ -186,7 +186,7 @@ export default function PaginaStatus() {
                                             {mov.tipo === 'compra' ? '🟢 COMPRA' : '🔴 VENDA'}
                                         </td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                                            {mov.quantidadeBTC?.toFixed(8)} BTC
+                                            {mov.quantidade?.toFixed(8)} BTC
                                         </td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>
                                             ${(mov.precoCompra || mov.precoVenda)?.toFixed(2)}

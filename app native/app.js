@@ -29,11 +29,11 @@ export default function App() {
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' ou 'movimentacoes'
 
   const saldo = state?.saldoUSD || 0;
-  const saldoBTC = state?.saldoBTC || 0;
+  const saldo = state?.saldo || 0;
   const positions = state?.positions || [];
   const movimentacoes_de_lote = state?.movimentacoes_de_lote || [];
-  const btcPrice = state?.BTC_PRICE || 0;
-  const totalBloqueado = saldo + saldoBTC * btcPrice;
+  const CryptoPrice = state?.Price || 0;
+  const totalBloqueado = saldo + saldo * CryptoPrice;
   const COOLDOWN_LOTES = state?.COOLDOWN_LOTES || 60;
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function App() {
       setState(data);
       setLoading(false);
 
-      if (data.BTC_PRICE !== null && data.BTC_PRICE !== undefined) {
+      if (data.Price !== null && data.Price !== undefined) {
         setLastBtcUpdate(Date.now());
         setBtcElapsed(0);
 
@@ -51,18 +51,18 @@ export default function App() {
           const last = prev[0]?.price;
           let diff = 0;
 
-          if (last !== undefined) diff = data.BTC_PRICE - last;
+          if (last !== undefined) diff = data.Price - last;
 
-          return [{ price: data.BTC_PRICE, diff }, ...prev].slice(0, 5);
+          return [{ price: data.Price, diff }, ...prev].slice(0, 5);
         });
       }
     });
 
     axios.get(`${API_URL}/saldo`).then((res) => {
       setState(res.data);
-      if (res.data.BTC_PRICE) {
+      if (res.data.Price) {
         setLastBtcUpdate(Date.now());
-        setLastPrices([{ price: res.data.BTC_PRICE, diff: 0 }]);
+        setLastPrices([{ price: res.data.Price, diff: 0 }]);
       }
       setLoading(false);
     });
@@ -90,10 +90,10 @@ export default function App() {
   // Calcular estatísticas de movimentações
   const compras = movimentacoes_de_lote.filter(m => m.tipo === 'compra');
   const vendas = movimentacoes_de_lote.filter(m => m.tipo === 'venda');
-  const totalComprado = compras.reduce((acc, m) => acc + (m.quantidadeBTC || 0), 0);
-  const totalVendido = vendas.reduce((acc, m) => acc + (m.quantidadeBTC || 0), 0);
-  const valorTotalCompras = compras.reduce((acc, m) => acc + (m.quantidadeBTC || 0) * (m.precoCompra || 0), 0);
-  const valorTotalVendas = vendas.reduce((acc, m) => acc + (m.quantidadeBTC || 0) * (m.precoVenda || 0), 0);
+  const totalComprado = compras.reduce((acc, m) => acc + (m.quantidade || 0), 0);
+  const totalVendido = vendas.reduce((acc, m) => acc + (m.quantidade || 0), 0);
+  const valorTotalCompras = compras.reduce((acc, m) => acc + (m.quantidade || 0) * (m.precoCompra || 0), 0);
+  const valorTotalVendas = vendas.reduce((acc, m) => acc + (m.quantidade || 0) * (m.precoVenda || 0), 0);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -144,10 +144,10 @@ export default function App() {
 
           <View style={styles.card}>
             <Text style={styles.label}>Saldo BTC</Text>
-            <Text style={styles.value}>{saldoBTC.toFixed(8)} BTC</Text>
+            <Text style={styles.value}>{saldo.toFixed(8)} BTC</Text>
             <Text style={styles.muted}>
               $
-              {(saldoBTC * btcPrice).toLocaleString('en-US', {
+              {(saldo * CryptoPrice).toLocaleString('en-US', {
                 minimumFractionDigits: 2,
               })}{' '}
               USD bloqueado
@@ -159,7 +159,7 @@ export default function App() {
             <Text style={styles.label}>BTC / USDT</Text>
             <Text style={styles.value}>
               $
-              {btcPrice.toLocaleString('en-US', {
+              {CryptoPrice.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
               })}
             </Text>
@@ -216,8 +216,8 @@ export default function App() {
           ) : (
             positions.map((item, index) => {
               const lucroPercentual =
-                ((btcPrice - item.precoCompra) / item.precoCompra) * 100;
-              const lucroUSD = (item.restante || 0) * (btcPrice - item.precoCompra);
+                ((CryptoPrice - item.precoCompra) / item.precoCompra) * 100;
+              const lucroUSD = (item.restante || 0) * (CryptoPrice - item.precoCompra);
               const corLucro = lucroPercentual >= 0 ? '#16c784' : '#ea3943';
 
               const temUltimaVenda = item.ultimavenda && item.ultimavenda > 0;
@@ -275,7 +275,7 @@ export default function App() {
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Total Comprado:</Text>
                     <Text style={styles.infoValue}>
-                      {(item.quantidadeBTC || 0).toFixed(8)} BTC
+                      {(item.quantidade || 0).toFixed(8)} BTC
                     </Text>
                   </View>
 
@@ -381,7 +381,7 @@ export default function App() {
             movimentacoes_de_lote.slice().reverse().map((mov, idx) => {
               const isCompra = mov.tipo === 'compra';
               const preco = mov.precoCompra || mov.precoVenda || 0;
-              const quantidade = mov.quantidadeBTC || 0;
+              const quantidade = mov.quantidade || 0;
               const valorTotal = quantidade * preco;
 
               return (
