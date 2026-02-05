@@ -398,7 +398,7 @@ export default function App() {
                       { backgroundColor: isCompra ? '#2e7d32' : '#e65100' }
                     ]}>
                       <Text style={styles.movBadgeText}>
-                        {isCompra ? '🟢 COMPRA' : '🔴 VENDA'}
+                        {mov.tipo === 'compra' ? '🟢 COMPRA' : mov.tipo === 'stop loss' ? '🔴 STOP LOSS' : '🔴 TAKE PROFIT'}
                       </Text>
                     </View>
                     <Text style={styles.movNumber}>
