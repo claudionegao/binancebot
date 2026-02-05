@@ -16,10 +16,10 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   const saldo = state?.saldoUSD || 0;
-  const saldo = state?.saldo || 0;
+  const saldoCrypto = state?.saldoCrypto || 0;
   const positions = state?.positions || [];
-  const CryptoPrice = state?.Price || 0;
-  const totalBloqueado = saldo + saldo * CryptoPrice;
+  const CryptoPrice = state?.PRICE || 0;
+  const totalBloqueado = saldo + saldoCrypto * CryptoPrice;
   const COOLDOWN_LOTES = state?.COOLDOWN_LOTES || 60;
 
   useEffect(() => {
@@ -30,7 +30,7 @@ export default function Home() {
       setLoading(false);
 
       // Atualizar o preço do BTC e histórico de preços
-      if (data.Price !== null && data.Price !== undefined) {
+      if (data.PRICE !== null && data.PRICE !== undefined) {
         setLastBtcUpdate(Date.now());
         setBtcElapsed(0);
 
@@ -40,11 +40,11 @@ export default function Home() {
           let diff = 0;
 
           if (last !== undefined) {
-            diff = data.Price - last;
+            diff = data.PRICE - last;
             direction = diff > 0 ? 'up' : diff < 0 ? 'down' : 'same';
           }
 
-          const updated = [{ price: data.Price, diff, direction }, ...prev];
+          const updated = [{ price: data.PRICE, diff, direction }, ...prev];
           return updated.slice(0, 10);
         });
       }
@@ -54,9 +54,9 @@ export default function Home() {
     axios.get(`${API_URL}/saldo`).then((res) => {
       setState(res.data);
 
-      if (res.data.Price !== undefined && res.data.Price !== null) {
+      if (res.data.PRICE !== undefined && res.data.PRICE !== null) {
         setLastBtcUpdate(Date.now());
-        setLastPrices([{ price: res.data.Price, diff: 0, direction: 'same' }]);
+        setLastPrices([{ price: res.data.PRICE, diff: 0, direction: 'same' }]);
       }
 
       setLoading(false);
@@ -148,10 +148,10 @@ export default function Home() {
         }}>
           <p style={{ color: '#666', fontSize: '14px', margin: '0 0 8px 0' }}>₿ Saldo BTC</p>
           <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#f7931a', margin: '0' }}>
-            {Number(saldo).toFixed(8)}
+            {Number(saldoCrypto).toFixed(8)}
           </p>
           <p style={{ color: '#999', fontSize: '12px', margin: '8px 0 0 0' }}>
-            ${(saldo * CryptoPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+            ${(saldoCrypto * CryptoPrice).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
           </p>
         </div>
 

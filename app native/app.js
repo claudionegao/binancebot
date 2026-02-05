@@ -29,11 +29,11 @@ export default function App() {
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' ou 'movimentacoes'
 
   const saldo = state?.saldoUSD || 0;
-  const saldo = state?.saldo || 0;
+  const saldoCrypto = state?.saldoCrypto || 0;
   const positions = state?.positions || [];
   const movimentacoes_de_lote = state?.movimentacoes_de_lote || [];
-  const CryptoPrice = state?.Price || 0;
-  const totalBloqueado = saldo + saldo * CryptoPrice;
+  const CryptoPrice = state?.PRICE || 0;
+  const totalBloqueado = saldo + saldoCrypto * CryptoPrice;
   const COOLDOWN_LOTES = state?.COOLDOWN_LOTES || 60;
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function App() {
       setState(data);
       setLoading(false);
 
-      if (data.Price !== null && data.Price !== undefined) {
+      if (data.PRICE !== null && data.PRICE !== undefined) {
         setLastBtcUpdate(Date.now());
         setBtcElapsed(0);
 
@@ -51,18 +51,18 @@ export default function App() {
           const last = prev[0]?.price;
           let diff = 0;
 
-          if (last !== undefined) diff = data.Price - last;
+          if (last !== undefined) diff = data.PRICE - last;
 
-          return [{ price: data.Price, diff }, ...prev].slice(0, 5);
+          return [{ price: data.PRICE, diff }, ...prev].slice(0, 5);
         });
       }
     });
 
     axios.get(`${API_URL}/saldo`).then((res) => {
       setState(res.data);
-      if (res.data.Price) {
+      if (res.data.PRICE) {
         setLastBtcUpdate(Date.now());
-        setLastPrices([{ price: res.data.Price, diff: 0 }]);
+        setLastPrices([{ price: res.data.PRICE, diff: 0 }]);
       }
       setLoading(false);
     });
@@ -144,10 +144,10 @@ export default function App() {
 
           <View style={styles.card}>
             <Text style={styles.label}>Saldo BTC</Text>
-            <Text style={styles.value}>{saldo.toFixed(8)} BTC</Text>
+            <Text style={styles.value}>{saldoCrypto.toFixed(8)} BTC</Text>
             <Text style={styles.muted}>
               $
-              {(saldo * CryptoPrice).toLocaleString('en-US', {
+              {(saldoCrypto * CryptoPrice).toLocaleString('en-US', {
                 minimumFractionDigits: 2,
               })}{' '}
               USD bloqueado

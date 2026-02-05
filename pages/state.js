@@ -43,12 +43,12 @@ export default function PaginaStatus() {
 
     const {
         saldoUSD,
-        saldo,
+        saldoCrypto,
         positions,
         movimentacoes_de_lote,
         ultimosPrecosRapida,
         ultimosPrecosLenta,
-        Price,
+        PRICE,
         MAX_LOTES,
         MEDIA_LENTA_N,
         MEDIA_RAPIDA_N,
@@ -77,13 +77,13 @@ export default function PaginaStatus() {
             <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <h2>💰 Saldos</h2>
                 <p><strong>Saldo USD:</strong> ${saldoUSD?.toFixed(2) || '0.00'}</p>
-                <p><strong>Saldo BTC:</strong> {saldo?.toFixed(8) || '0.00000000'} BTC</p>
+                <p><strong>Saldo BTC:</strong> {saldoCrypto?.toFixed(8) || '0.00000000'} BTC</p>
             </section>
 
             {/* Preço Atual */}
             <section style={{ backgroundColor: 'white', padding: '15px', borderRadius: '8px', marginBottom: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <h2>📈 Preço Atual</h2>
-                <p><strong>BTC Price:</strong> ${Price?.toFixed(2) || 'N/A'}</p>
+                <p><strong>BTC Price:</strong> ${PRICE?.toFixed(2) || 'N/A'}</p>
             </section>
 
             {/* Médias */}
