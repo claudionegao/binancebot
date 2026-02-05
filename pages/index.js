@@ -442,6 +442,7 @@ export default function Home() {
                     <p style={{ margin: '8px 0', color: '#666', fontSize: '12px' }}>
                       <strong>Comprado em:</strong> 
                       <span style={{ marginLeft: '8px', color: '#999' }}>
+                        {/*data calculada com identificador que e o timestamp do lote */}
                         {item.identificador ? new Date(item.identificador).toLocaleString('pt-BR') : '-'}
                       </span>
                     </p>

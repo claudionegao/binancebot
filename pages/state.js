@@ -153,7 +153,8 @@ export default function PaginaStatus() {
                                             {pos.ultimavenda ? new Date(pos.ultimavenda).toLocaleString('pt-BR') : '-'}
                                         </td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '12px' }}>
-                                            {pos.timestamp ? new Date(pos.timestamp).toLocaleString('pt-BR') : '-'}
+                                            {/*data calculada com identificador que e o timestamp do lote */}
+                                            {pos.identificador ? new Date(pos.identificador).toLocaleString('pt-BR') : '-'}
                                         </td>
                                     </tr>
                                 ))}
