@@ -257,6 +257,12 @@ export default function Home() {
               const lucroUSD = (item.restante || 0) * (CryptoPrice - item.precoCompra);
               const corLucro = lucroPercentual >= 0 ? '#00c853' : '#d32f2f';
               
+              // Cálculos de Melhor Preço e Drawdown
+              const melhorPreco = item.melhorpreco || item.precoCompra;
+              const lucroMaxPercent = ((melhorPreco - item.precoCompra) / item.precoCompra) * 100;
+              const lucroMaxUSD = (item.restante || 0) * (melhorPreco - item.precoCompra);
+              const drawdownPercent = ((CryptoPrice - melhorPreco) / melhorPreco) * 100;
+              
               // Calcular cooldown
               const temUltimaVenda = item.ultimavenda && item.ultimavenda > 0;
               const segundosDesdeVenda = temUltimaVenda 
@@ -268,8 +274,8 @@ export default function Home() {
               return (
                 <div key={item.identificador || index} style={{
                   border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
-                  padding: '15px',
+                  borderRadius: '12px',
+                  padding: '20px',
                   backgroundColor: '#fafafa',
                   transition: 'all 0.3s ease'
                 }}>
@@ -277,23 +283,23 @@ export default function Home() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    marginBottom: '12px',
-                    paddingBottom: '12px',
+                    marginBottom: '16px',
+                    paddingBottom: '16px',
                     borderBottom: '2px solid #e0e0e0'
                   }}>
                     <span style={{ 
                       display: 'inline-block',
                       backgroundColor: '#0066cc',
                       color: 'white',
-                      padding: '4px 12px',
+                      padding: '6px 14px',
                       borderRadius: '20px',
-                      fontSize: '12px',
+                      fontSize: '13px',
                       fontWeight: 'bold'
                     }}>
                       Lote #{index + 1}
                     </span>
                     <span style={{
-                      fontSize: '10px',
+                      fontSize: '11px',
                       color: '#999',
                       fontFamily: 'monospace'
                     }}>
@@ -304,80 +310,122 @@ export default function Home() {
                   {/* Status do Cooldown */}
                   <div style={{
                     backgroundColor: isActive ? '#e8f5e9' : '#fff3e0',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    marginBottom: '12px',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    marginBottom: '14px',
                     textAlign: 'center',
                     border: `2px solid ${isActive ? '#00c853' : '#ff9800'}`
                   }}>
                     {isActive ? (
-                      <p style={{ margin: '0', fontSize: '14px', fontWeight: 'bold', color: '#00c853' }}>
+                      <p style={{ margin: '0', fontSize: '15px', fontWeight: 'bold', color: '#00c853' }}>
                         ✓ ACTIVE
                       </p>
                     ) : (
                       <>
-                        <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#666' }}>
+                        <p style={{ margin: '0 0 6px 0', fontSize: '11px', color: '#666' }}>
                           COOLDOWN
                         </p>
-                        <p style={{ margin: '0', fontSize: '18px', fontWeight: 'bold', color: '#ff9800' }}>
+                        <p style={{ margin: '0', fontSize: '20px', fontWeight: 'bold', color: '#ff9800' }}>
                           {cooldownRestante}s
                         </p>
                       </>
                     )}
                   </div>
 
-                  {/* Lucro/Prejuízo */}
+                  {/* Resultado Atual */}
                   <div style={{
                     backgroundColor: lucroPercentual >= 0 ? '#e8f5e9' : '#ffebee',
-                    padding: '10px',
-                    borderRadius: '6px',
-                    marginBottom: '12px',
-                    textAlign: 'center'
+                    padding: '14px',
+                    borderRadius: '8px',
+                    marginBottom: '14px',
+                    textAlign: 'center',
+                    border: `1px solid ${lucroPercentual >= 0 ? '#4caf50' : '#ef5350'}`
                   }}>
-                    <p style={{ margin: '0 0 4px 0', fontSize: '12px', color: '#666' }}>
-                      Resultado
+                    <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#666' }}>
+                      Resultado Atual
                     </p>
-                    <p style={{ margin: '0', fontSize: '20px', fontWeight: 'bold', color: corLucro }}>
+                    <p style={{ margin: '0', fontSize: '24px', fontWeight: 'bold', color: corLucro }}>
                       {lucroPercentual >= 0 ? '+' : ''}{lucroPercentual.toFixed(2)}%
                     </p>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: corLucro }}>
+                    <p style={{ margin: '6px 0 0 0', fontSize: '14px', fontWeight: '600', color: corLucro }}>
                       {lucroUSD >= 0 ? '+' : ''}${lucroUSD.toFixed(2)} USD
                     </p>
                   </div>
 
+                  {/* Máximo Alcançado */}
+                  <div style={{
+                    backgroundColor: '#e3f2fd',
+                    padding: '14px',
+                    borderRadius: '8px',
+                    marginBottom: '14px',
+                    textAlign: 'center',
+                    border: '1px solid #1976d2'
+                  }}>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#666' }}>
+                      Máx. Alcançado
+                    </p>
+                    <p style={{ margin: '0', fontSize: '22px', fontWeight: 'bold', color: '#1565c0' }}>
+                      +{lucroMaxPercent.toFixed(2)}%
+                    </p>
+                    <p style={{ margin: '6px 0 0 0', fontSize: '13px', fontWeight: '600', color: '#1565c0' }}>
+                      +${lucroMaxUSD.toFixed(2)} USD
+                    </p>
+                    <p style={{
+                      margin: '8px 0 0 0',
+                      fontSize: '12px',
+                      color: drawdownPercent < 0 ? '#d32f2f' : '#00c853',
+                      fontWeight: '600'
+                    }}>
+                      Desde o topo: {drawdownPercent.toFixed(2)}%
+                    </p>
+                  </div>
+
                   {/* Informações do Lote */}
-                  <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>
-                    <strong style={{ color: '#666' }}>Total Comprado:</strong> 
-                    <span style={{ marginLeft: '8px', fontFamily: 'monospace', float: 'right' }}>
-                      {Number(item.quantidade || 0).toFixed(8)} BTC
-                    </span>
-                  </p>
-                  <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>
-                    <strong style={{ color: '#666' }}>Restante:</strong> 
-                    <span style={{ marginLeft: '8px', fontFamily: 'monospace', float: 'right', color: '#f7931a', fontWeight: 'bold' }}>
-                      {Number(item.restante || 0).toFixed(8)} BTC
-                    </span>
-                  </p>
-                  <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>
-                    <strong style={{ color: '#666' }}>Preço Compra:</strong> 
-                    <span style={{ marginLeft: '8px', fontFamily: 'monospace', float: 'right' }}>
-                      ${Number(item.precoCompra || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                  </p>
-                  <p style={{ margin: '8px 0', color: '#333', fontSize: '13px' }}>
-                    <strong style={{ color: '#666' }}>Vendas Realizadas:</strong> 
-                    <span style={{ marginLeft: '8px', float: 'right' }}>
-                      {item.vendasrealizadas || 0}/3
-                    </span>
-                  </p>
+                  <div style={{ 
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '10px',
+                    marginBottom: '14px'
+                  }}>
+                    <div style={{ padding: '10px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #e0e0e0' }}>
+                      <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#999' }}>Total Comprado</p>
+                      <p style={{ margin: '0', fontSize: '14px', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                        {(item.quantidade || 0).toFixed(8)} BTC
+                      </p>
+                    </div>
+                    <div style={{ padding: '10px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #e0e0e0' }}>
+                      <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#999' }}>Restante</p>
+                      <p style={{ margin: '0', fontSize: '14px', fontWeight: 'bold', fontFamily: 'monospace', color: '#f7931a' }}>
+                        {(item.restante || 0).toFixed(8)} BTC
+                      </p>
+                    </div>
+                    <div style={{ padding: '10px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #e0e0e0' }}>
+                      <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#999' }}>Preço Compra</p>
+                      <p style={{ margin: '0', fontSize: '14px', fontWeight: 'bold', fontFamily: 'monospace' }}>
+                        ${(item.precoCompra || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div style={{ padding: '10px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #e0e0e0' }}>
+                      <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#999' }}>Melhor Preço</p>
+                      <p style={{ margin: '0', fontSize: '14px', fontWeight: 'bold', fontFamily: 'monospace', color: '#1565c0' }}>
+                        ${(melhorPreco || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
 
                   {/* Progress Bar de Vendas */}
-                  <div style={{ marginTop: '12px' }}>
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <p style={{ margin: '0', fontSize: '12px', fontWeight: 'bold', color: '#666' }}>Vendas Realizadas</p>
+                      <p style={{ margin: '0', fontSize: '12px', fontWeight: 'bold', color: '#0066cc' }}>
+                        {item.vendasrealizadas || 0}/3
+                      </p>
+                    </div>
                     <div style={{
                       width: '100%',
-                      height: '6px',
+                      height: '8px',
                       backgroundColor: '#e0e0e0',
-                      borderRadius: '3px',
+                      borderRadius: '4px',
                       overflow: 'hidden'
                     }}>
                       <div style={{
@@ -390,17 +438,17 @@ export default function Home() {
                   </div>
 
                   {/* Timestamp e Última Venda */}
-                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e0e0e0' }}>
-                    <p style={{ margin: '4px 0', color: '#666', fontSize: '11px' }}>
+                  <div style={{ paddingTop: '12px', borderTop: '1px solid #e0e0e0' }}>
+                    <p style={{ margin: '8px 0', color: '#666', fontSize: '12px' }}>
                       <strong>Comprado em:</strong> 
-                      <span style={{ marginLeft: '8px' }}>
-                        {item.identificador ? new Date(item.identificador).toLocaleString('pt-BR') : '-'}
+                      <span style={{ marginLeft: '8px', color: '#999' }}>
+                        {item.timestamp ? new Date(item.timestamp).toLocaleString('pt-BR') : '-'}
                       </span>
                     </p>
                     {item.ultimavenda && (
-                      <p style={{ margin: '4px 0', color: '#666', fontSize: '11px' }}>
+                      <p style={{ margin: '8px 0', color: '#666', fontSize: '12px' }}>
                         <strong>Última venda:</strong> 
-                        <span style={{ marginLeft: '8px' }}>
+                        <span style={{ marginLeft: '8px', color: '#999' }}>
                           {new Date(item.ultimavenda).toLocaleString('pt-BR')}
                         </span>
                       </p>

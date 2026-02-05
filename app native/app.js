@@ -88,12 +88,24 @@ export default function App() {
   }
 
   // Calcular estatísticas de movimentações
-  const compras = movimentacoes_de_lote.filter(m => m.tipo === 'compra');
-  const vendas = movimentacoes_de_lote.filter(m => m.tipo === 'venda');
-  const totalComprado = compras.reduce((acc, m) => acc + (m.quantidade || 0), 0);
+  const compras = movimentacoes_de_lote.filter((m) => m.tipo === 'compra');
+  const vendas = movimentacoes_de_lote.filter(
+    (m) =>
+      m.tipo === 'venda' || m.tipo === 'stop loss' || m.tipo === 'take profit'
+  );
+  const totalComprado = compras.reduce(
+    (acc, m) => acc + (m.quantidade || 0),
+    0
+  );
   const totalVendido = vendas.reduce((acc, m) => acc + (m.quantidade || 0), 0);
-  const valorTotalCompras = compras.reduce((acc, m) => acc + (m.quantidade || 0) * (m.precoCompra || 0), 0);
-  const valorTotalVendas = vendas.reduce((acc, m) => acc + (m.quantidade || 0) * (m.precoVenda || 0), 0);
+  const valorTotalCompras = compras.reduce(
+    (acc, m) => acc + (m.quantidade || 0) * (m.precoCompra || 0),
+    0
+  );
+  const valorTotalVendas = vendas.reduce(
+    (acc, m) => acc + (m.quantidade || 0) * (m.precoVenda || 0),
+    0
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -102,26 +114,40 @@ export default function App() {
         <Text style={styles.headerTitle}>📊 Binance Bot</Text>
         <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[styles.tab, currentView === 'dashboard' && styles.tabActive]}
+            style={[
+              styles.tab,
+              currentView === 'dashboard' && styles.tabActive,
+            ]}
             onPress={() => setCurrentView('dashboard')}>
-            <Ionicons 
-              name="home" 
-              size={20} 
-              color={currentView === 'dashboard' ? '#fff' : '#666'} 
+            <Ionicons
+              name="home"
+              size={20}
+              color={currentView === 'dashboard' ? '#fff' : '#666'}
             />
-            <Text style={[styles.tabText, currentView === 'dashboard' && styles.tabTextActive]}>
+            <Text
+              style={[
+                styles.tabText,
+                currentView === 'dashboard' && styles.tabTextActive,
+              ]}>
               Dashboard
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, currentView === 'movimentacoes' && styles.tabActive]}
+            style={[
+              styles.tab,
+              currentView === 'movimentacoes' && styles.tabActive,
+            ]}
             onPress={() => setCurrentView('movimentacoes')}>
-            <Ionicons 
-              name="list" 
-              size={20} 
-              color={currentView === 'movimentacoes' ? '#fff' : '#666'} 
+            <Ionicons
+              name="list"
+              size={20}
+              color={currentView === 'movimentacoes' ? '#fff' : '#666'}
             />
-            <Text style={[styles.tabText, currentView === 'movimentacoes' && styles.tabTextActive]}>
+            <Text
+              style={[
+                styles.tabText,
+                currentView === 'movimentacoes' && styles.tabTextActive,
+              ]}>
               Movimentações
             </Text>
           </TouchableOpacity>
@@ -130,7 +156,9 @@ export default function App() {
 
       {/* Conteúdo baseado na view atual */}
       {currentView === 'dashboard' ? (
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}>
           {/* SALDOS */}
           <View style={styles.card}>
             <Text style={styles.label}>Saldo USD</Text>
@@ -217,14 +245,33 @@ export default function App() {
             positions.map((item, index) => {
               const lucroPercentual =
                 ((CryptoPrice - item.precoCompra) / item.precoCompra) * 100;
-              const lucroUSD = (item.restante || 0) * (CryptoPrice - item.precoCompra);
+
+              const lucroUSD =
+                (item.restante || 0) * (CryptoPrice - item.precoCompra);
+
+              const melhorPreco = item.melhorpreco || item.precoCompra;
+
+              const lucroMaxPercent =
+                ((melhorPreco - item.precoCompra) / item.precoCompra) * 100;
+
+              const lucroMaxUSD =
+                (item.restante || 0) * (melhorPreco - item.precoCompra);
+
+              const drawdownPercent =
+                ((CryptoPrice - melhorPreco) / melhorPreco) * 100;
+
               const corLucro = lucroPercentual >= 0 ? '#16c784' : '#ea3943';
 
               const temUltimaVenda = item.ultimavenda && item.ultimavenda > 0;
               const segundosDesdeVenda = temUltimaVenda
                 ? Math.floor((currentTime - item.ultimavenda) / 1000)
                 : 0;
-              const cooldownRestante = Math.max(0, COOLDOWN_LOTES - segundosDesdeVenda);
+
+              const cooldownRestante = Math.max(
+                0,
+                COOLDOWN_LOTES - segundosDesdeVenda
+              );
+
               const isActive = !temUltimaVenda || cooldownRestante === 0;
 
               return (
@@ -232,27 +279,27 @@ export default function App() {
                   {/* Header */}
                   <View style={styles.positionHeader}>
                     <Text style={styles.positionBadge}>Lote #{index + 1}</Text>
-                    <Text style={styles.positionId}>ID: {item.identificador}</Text>
+                    <Text style={styles.positionId}>
+                      ID: {item.identificador}
+                    </Text>
                   </View>
 
-                  {/* Status Cooldown */}
+                  {/* Status */}
                   <View
                     style={[
                       styles.statusBadge,
                       { backgroundColor: isActive ? '#e8f7ef' : '#fff3e0' },
                     ]}>
-                    {isActive ? (
-                      <Text style={[styles.statusText, { color: '#16c784' }]}>
-                        ✓ ACTIVE
-                      </Text>
-                    ) : (
-                      <Text style={[styles.statusText, { color: '#ff9800' }]}>
-                        COOLDOWN: {cooldownRestante}s
-                      </Text>
-                    )}
+                    <Text
+                      style={[
+                        styles.statusText,
+                        { color: isActive ? '#16c784' : '#ff9800' },
+                      ]}>
+                      {isActive ? '✓ ACTIVE' : `COOLDOWN: ${cooldownRestante}s`}
+                    </Text>
                   </View>
 
-                  {/* Lucro/Prejuízo */}
+                  {/* Lucro Atual */}
                   <View
                     style={[
                       styles.lucroCard,
@@ -261,13 +308,35 @@ export default function App() {
                           lucroPercentual >= 0 ? '#e8f7ef' : '#fdeaea',
                       },
                     ]}>
-                    <Text style={styles.lucroLabel}>Resultado</Text>
+                    <Text style={styles.lucroLabel}>Resultado Atual</Text>
                     <Text style={[styles.lucroValue, { color: corLucro }]}>
                       {lucroPercentual >= 0 ? '+' : ''}
                       {lucroPercentual.toFixed(2)}%
                     </Text>
                     <Text style={[styles.lucroUSD, { color: corLucro }]}>
                       {lucroUSD >= 0 ? '+' : ''}${lucroUSD.toFixed(2)}
+                    </Text>
+                  </View>
+
+                  {/* Melhor Preço / Máximo */}
+                  <View
+                    style={[styles.lucroCard, { backgroundColor: '#e3f2fd' }]}>
+                    <Text style={styles.lucroLabel}>Máx. Alcançado</Text>
+                    <Text style={[styles.lucroValue, { color: '#1565c0' }]}>
+                      +{lucroMaxPercent.toFixed(2)}%
+                    </Text>
+                    <Text style={[styles.lucroUSD, { color: '#1565c0' }]}>
+                      +${lucroMaxUSD.toFixed(2)}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.muted,
+                        {
+                          marginTop: 4,
+                          color: drawdownPercent < 0 ? '#ea3943' : '#16c784',
+                        },
+                      ]}>
+                      Desde o topo: {drawdownPercent.toFixed(2)}%
                     </Text>
                   </View>
 
@@ -281,7 +350,11 @@ export default function App() {
 
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Restante:</Text>
-                    <Text style={[styles.infoValue, { color: '#f0b90b', fontWeight: '700' }]}>
+                    <Text
+                      style={[
+                        styles.infoValue,
+                        { color: '#f0b90b', fontWeight: '700' },
+                      ]}>
                       {(item.restante || 0).toFixed(8)} BTC
                     </Text>
                   </View>
@@ -289,21 +362,22 @@ export default function App() {
                   <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Preço Compra:</Text>
                     <Text style={styles.infoValue}>
-                      $
-                      {(item.precoCompra || 0).toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                      })}
+                      ${item.precoCompra.toFixed(2)}
                     </Text>
                   </View>
 
                   <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Vendas Realizadas:</Text>
-                    <Text style={styles.infoValue}>
-                      {item.vendasrealizadas || 0}/3
+                    <Text style={styles.infoLabel}>Melhor Preço:</Text>
+                    <Text
+                      style={[
+                        styles.infoValue,
+                        { color: '#1565c0', fontWeight: '700' },
+                      ]}>
+                      ${melhorPreco.toFixed(2)}
                     </Text>
                   </View>
 
-                  {/* Progress Bar */}
+                  {/* Progresso */}
                   <View style={styles.progressContainer}>
                     <View
                       style={[
@@ -315,13 +389,18 @@ export default function App() {
                     />
                   </View>
 
-                  {/* Timestamps */}
+                  {/* Datas */}
                   <Text style={styles.timestamp}>
-                    Comprado: {item.timestamp ? new Date(item.timestamp).toLocaleString('pt-BR') : '-'}
+                    Comprado:{' '}
+                    {item.timestamp
+                      ? new Date(item.timestamp).toLocaleString('pt-BR')
+                      : '-'}
                   </Text>
+
                   {item.ultimavenda && (
                     <Text style={styles.timestamp}>
-                      Última venda: {new Date(item.ultimavenda).toLocaleString('pt-BR')}
+                      Última venda:{' '}
+                      {new Date(item.ultimavenda).toLocaleString('pt-BR')}
                     </Text>
                   )}
                 </View>
@@ -331,13 +410,19 @@ export default function App() {
         </ScrollView>
       ) : (
         /* Tela de Movimentações */
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}>
           {/* Cards de Estatísticas */}
           <View style={styles.statsContainer}>
             <View style={[styles.statCard, { backgroundColor: '#e8f5e9' }]}>
               <Text style={styles.statLabel}>🟢 Compras</Text>
-              <Text style={[styles.statValue, { color: '#2e7d32' }]}>{compras.length}</Text>
-              <Text style={styles.statDetail}>{totalComprado.toFixed(6)} BTC</Text>
+              <Text style={[styles.statValue, { color: '#2e7d32' }]}>
+                {compras.length}
+              </Text>
+              <Text style={styles.statDetail}>
+                {totalComprado.toFixed(6)} BTC
+              </Text>
               <Text style={[styles.statMoney, { color: '#2e7d32' }]}>
                 ${valorTotalCompras.toFixed(2)}
               </Text>
@@ -345,20 +430,38 @@ export default function App() {
 
             <View style={[styles.statCard, { backgroundColor: '#fff3e0' }]}>
               <Text style={styles.statLabel}>🔴 Vendas</Text>
-              <Text style={[styles.statValue, { color: '#e65100' }]}>{vendas.length}</Text>
-              <Text style={styles.statDetail}>{totalVendido.toFixed(6)} BTC</Text>
+              <Text style={[styles.statValue, { color: '#e65100' }]}>
+                {vendas.length}
+              </Text>
+              <Text style={styles.statDetail}>
+                {totalVendido.toFixed(6)} BTC
+              </Text>
               <Text style={[styles.statMoney, { color: '#e65100' }]}>
                 ${valorTotalVendas.toFixed(2)}
               </Text>
             </View>
 
-            <View style={[styles.statCard, { 
-              backgroundColor: valorTotalVendas >= valorTotalCompras ? '#e8f5e9' : '#ffebee' 
-            }]}>
+            <View
+              style={[
+                styles.statCard,
+                {
+                  backgroundColor:
+                    valorTotalVendas >= valorTotalCompras
+                      ? '#e8f5e9'
+                      : '#ffebee',
+                },
+              ]}>
               <Text style={styles.statLabel}>💰 Resultado</Text>
-              <Text style={[styles.statValue, { 
-                color: valorTotalVendas >= valorTotalCompras ? '#2e7d32' : '#c62828' 
-              }]}>
+              <Text
+                style={[
+                  styles.statValue,
+                  {
+                    color:
+                      valorTotalVendas >= valorTotalCompras
+                        ? '#2e7d32'
+                        : '#c62828',
+                  },
+                ]}>
                 ${(valorTotalVendas - valorTotalCompras).toFixed(2)}
               </Text>
               <Text style={styles.statDetail}>
@@ -378,77 +481,88 @@ export default function App() {
               <Text style={styles.muted}>Nenhuma movimentação registrada</Text>
             </View>
           ) : (
-            movimentacoes_de_lote.slice().reverse().map((mov, idx) => {
-              const isCompra = mov.tipo === 'compra';
-              const preco = mov.precoCompra || mov.precoVenda || 0;
-              const quantidade = mov.quantidade || 0;
-              const valorTotal = quantidade * preco;
+            movimentacoes_de_lote
+              .slice()
+              .reverse()
+              .map((mov, idx) => {
+                const isCompra = mov.tipo === 'compra';
+                const preco = mov.precoCompra || mov.precoVenda || 0;
+                const quantidade = mov.quantidade || 0;
+                const valorTotal = quantidade * preco;
 
-              return (
-                <View 
-                  key={idx} 
-                  style={[
-                    styles.movCard,
-                    { backgroundColor: isCompra ? '#f1f8f4' : '#fff9f0' }
-                  ]}>
-                  {/* Header */}
-                  <View style={styles.movHeader}>
-                    <View style={[
-                      styles.movBadge,
-                      { backgroundColor: isCompra ? '#2e7d32' : '#e65100' }
+                return (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.movCard,
+                      { backgroundColor: isCompra ? '#f1f8f4' : '#fff9f0' },
                     ]}>
-                      <Text style={styles.movBadgeText}>
-                        {mov.tipo === 'compra' ? '🟢 COMPRA' : mov.tipo === 'stop loss' ? '🔴 STOP LOSS' : '🔴 TAKE PROFIT'}
+                    {/* Header */}
+                    <View style={styles.movHeader}>
+                      <View
+                        style={[
+                          styles.movBadge,
+                          { backgroundColor: isCompra ? '#2e7d32' : '#e65100' },
+                        ]}>
+                        <Text style={styles.movBadgeText}>
+                          {mov.tipo === 'compra'
+                            ? '🟢 COMPRA'
+                            : mov.tipo === 'stop loss'
+                            ? '🔴 STOP LOSS'
+                            : '🔴 TAKE PROFIT'}
+                        </Text>
+                      </View>
+                      <Text style={styles.movNumber}>
+                        #{movimentacoes_de_lote.length - idx}
                       </Text>
                     </View>
-                    <Text style={styles.movNumber}>
-                      #{movimentacoes_de_lote.length - idx}
-                    </Text>
-                  </View>
 
-                  {/* Detalhes */}
-                  <View style={styles.movRow}>
-                    <Text style={styles.movLabel}>Quantidade:</Text>
-                    <Text style={styles.movValue}>{quantidade.toFixed(8)} BTC</Text>
-                  </View>
+                    {/* Detalhes */}
+                    <View style={styles.movRow}>
+                      <Text style={styles.movLabel}>Quantidade:</Text>
+                      <Text style={styles.movValue}>
+                        {quantidade.toFixed(8)} BTC
+                      </Text>
+                    </View>
 
-                  <View style={styles.movRow}>
-                    <Text style={styles.movLabel}>Preço:</Text>
-                    <Text style={styles.movValue}>${preco.toFixed(2)}</Text>
-                  </View>
+                    <View style={styles.movRow}>
+                      <Text style={styles.movLabel}>Preço:</Text>
+                      <Text style={styles.movValue}>${preco.toFixed(2)}</Text>
+                    </View>
 
-                  <View style={styles.movRow}>
-                    <Text style={styles.movLabel}>Total:</Text>
-                    <Text style={[
-                      styles.movValue, 
-                      { 
-                        fontWeight: '700', 
-                        color: isCompra ? '#2e7d32' : '#e65100',
-                        fontSize: 15
-                      }
-                    ]}>
-                      ${valorTotal.toFixed(2)}
-                    </Text>
-                  </View>
+                    <View style={styles.movRow}>
+                      <Text style={styles.movLabel}>Total:</Text>
+                      <Text
+                        style={[
+                          styles.movValue,
+                          {
+                            fontWeight: '700',
+                            color: isCompra ? '#2e7d32' : '#e65100',
+                            fontSize: 15,
+                          },
+                        ]}>
+                        ${valorTotal.toFixed(2)}
+                      </Text>
+                    </View>
 
-                  {/* Timestamp */}
-                  <View style={styles.movFooter}>
-                    <Ionicons name="time-outline" size={12} color="#999" />
-                    <Text style={styles.movTimestamp}>
-                      {mov.timestamp 
-                        ? new Date(mov.timestamp).toLocaleString('pt-BR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
-                        : '-'}
-                    </Text>
+                    {/* Timestamp */}
+                    <View style={styles.movFooter}>
+                      <Ionicons name="time-outline" size={12} color="#999" />
+                      <Text style={styles.movTimestamp}>
+                        {mov.timestamp
+                          ? new Date(mov.timestamp).toLocaleString('pt-BR', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : '-'}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              );
-            })
+                );
+              })
           )}
         </ScrollView>
       )}
