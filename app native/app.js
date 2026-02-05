@@ -393,7 +393,7 @@ export default function App() {
                   <Text style={styles.timestamp}>
                     Comprado:{' '}
                     {item.timestamp
-                      ? new Date(item.timestamp).toLocaleString('pt-BR')
+                      ? new Date(item.identificador).toLocaleString('pt-BR')
                       : '-'}
                   </Text>
 
