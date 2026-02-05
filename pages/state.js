@@ -186,7 +186,7 @@ export default function PaginaStatus() {
                                             {mov.tipo === 'compra' ? '🟢 COMPRA' : mov.tipo === 'stop loss' ? '🔴 STOP LOSS' : '🔴 TAKE PROFIT'}
                                         </td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                                            {mov.quantidadeBTC?.toFixed(8)} BTC
+                                            {mov.quantidade?.toFixed(8)} BTC
                                         </td>
                                         <td style={{ border: '1px solid #ddd', padding: '8px' }}>
                                             ${(mov.precoCompra || mov.precoVenda)?.toFixed(2)}
