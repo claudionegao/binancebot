@@ -54,7 +54,7 @@ export default function Movimentacoes() {
 
     // Calcular estatísticas
     const compras = movimentacoes_de_lote.filter(m => m.tipo === 'compra');
-    const vendas = movimentacoes_de_lote.filter(m => m.tipo === 'venda');
+    const vendas = movimentacoes_de_lote.filter(m => m.tipo === 'venda' || m.tipo === 'stop loss' || m.tipo === 'take profit');
     const totalComprado = compras.reduce((acc, m) => acc + (m.quantidade || 0), 0);
     const totalVendido = vendas.reduce((acc, m) => acc + (m.quantidade || 0), 0);
     const valorTotalCompras = compras.reduce((acc, m) => acc + (m.quantidade || 0) * (m.precoCompra || 0), 0);
