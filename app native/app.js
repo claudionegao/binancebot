@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   TouchableOpacity,
+  TextInput,
   Dimensions,
   StatusBar,
   Platform,
@@ -27,6 +28,16 @@ export default function App() {
   const [lastPrices, setLastPrices] = useState([]);
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [currentView, setCurrentView] = useState('dashboard'); // 'dashboard' ou 'movimentacoes'
+  const [filtros, setFiltros] = useState({
+    tipo: 'todos',
+    dataInicio: '',
+    dataFim: '',
+    quantidadeMin: '',
+    quantidadeMax: '',
+    precoMin: '',
+    precoMax: '',
+  });
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
   const saldo = state?.saldoUSD || 0;
   const saldoCrypto = state?.saldo || 0;
@@ -87,6 +98,50 @@ export default function App() {
     );
   }
 
+  const parseDate = (value, isEnd) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    if (isEnd) {
+      date.setHours(23, 59, 59, 999);
+    } else {
+      date.setHours(0, 0, 0, 0);
+    }
+    return date;
+  };
+
+  const dataInicio = parseDate(filtros.dataInicio, false);
+  const dataFim = parseDate(filtros.dataFim, true);
+
+  const movimentacoesFiltradas = movimentacoes_de_lote.filter((m) => {
+    if (filtros.tipo !== 'todos' && m.tipo !== filtros.tipo) return false;
+
+    if (dataInicio || dataFim) {
+      const dataMov = m.timestamp ? new Date(m.timestamp) : null;
+      if (!dataMov || Number.isNaN(dataMov.getTime())) return false;
+      if (dataInicio && dataMov < dataInicio) return false;
+      if (dataFim && dataMov > dataFim) return false;
+    }
+
+    const quantidade = m.quantidade || 0;
+    if (
+      filtros.quantidadeMin &&
+      quantidade < parseFloat(filtros.quantidadeMin)
+    )
+      return false;
+    if (
+      filtros.quantidadeMax &&
+      quantidade > parseFloat(filtros.quantidadeMax)
+    )
+      return false;
+
+    const preco = m.precoCompra || m.precoVenda || 0;
+    if (filtros.precoMin && preco < parseFloat(filtros.precoMin)) return false;
+    if (filtros.precoMax && preco > parseFloat(filtros.precoMax)) return false;
+
+    return true;
+  });
+
   // Calcular estatísticas de movimentações
   const compras = movimentacoes_de_lote.filter((m) => m.tipo === 'compra');
   const vendas = movimentacoes_de_lote.filter(
@@ -106,6 +161,9 @@ export default function App() {
     (acc, m) => acc + (m.quantidade || 0) * (m.precoVenda || 0),
     0
   );
+  const saldoEmAbertoQuantidade = totalComprado - totalVendido;
+  const saldoAberto = saldoEmAbertoQuantidade * CryptoPrice;
+  const resultadoTotal = valorTotalVendas - valorTotalCompras + saldoAberto;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -446,9 +504,7 @@ export default function App() {
                 styles.statCard,
                 {
                   backgroundColor:
-                    valorTotalVendas >= valorTotalCompras
-                      ? '#e8f5e9'
-                      : '#ffebee',
+                    resultadoTotal >= 0 ? '#e8f5e9' : '#ffebee',
                 },
               ]}>
               <Text style={styles.statLabel}>💰 Resultado</Text>
@@ -456,32 +512,195 @@ export default function App() {
                 style={[
                   styles.statValue,
                   {
-                    color:
-                      valorTotalVendas >= valorTotalCompras
-                        ? '#2e7d32'
-                        : '#c62828',
+                    color: resultadoTotal >= 0 ? '#2e7d32' : '#c62828',
                   },
                 ]}>
-                ${(valorTotalVendas - valorTotalCompras).toFixed(2)}
+                ${resultadoTotal.toFixed(2)}
               </Text>
               <Text style={styles.statDetail}>
-                {(totalVendido - totalComprado).toFixed(6)} BTC
+                Saldo: {saldoEmAbertoQuantidade.toFixed(6)} BTC
               </Text>
             </View>
           </View>
 
           {/* Lista de Movimentações */}
           <Text style={styles.section}>
-            Histórico ({movimentacoes_de_lote.length} movimentações)
+            Histórico ({movimentacoesFiltradas.length} de{' '}
+            {movimentacoes_de_lote.length} movimentações)
           </Text>
 
-          {movimentacoes_de_lote.length === 0 ? (
+          <TouchableOpacity
+            style={styles.filterToggle}
+            onPress={() => setMostrarFiltros((prev) => !prev)}>
+            <Ionicons
+              name={mostrarFiltros ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color="#fff"
+            />
+            <Text style={styles.filterToggleText}>
+              {mostrarFiltros ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+            </Text>
+          </TouchableOpacity>
+
+          {mostrarFiltros && (
+            <View style={styles.filtersCard}>
+              <Text style={styles.filtersTitle}>Filtros</Text>
+
+              <View style={styles.filterGroup}>
+                <Text style={styles.filterLabel}>Tipo</Text>
+                <View style={styles.filterOptions}>
+                  {[
+                    { value: 'todos', label: 'Todos' },
+                    { value: 'compra', label: 'Compras' },
+                    { value: 'venda', label: 'Vendas' },
+                    { value: 'stop loss', label: 'Stop Loss' },
+                    { value: 'take profit', label: 'Take Profit' },
+                  ].map((option) => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.filterOption,
+                        filtros.tipo === option.value &&
+                          styles.filterOptionActive,
+                      ]}
+                      onPress={() =>
+                        setFiltros((prev) => ({
+                          ...prev,
+                          tipo: option.value,
+                        }))
+                      }>
+                      <Text
+                        style={[
+                          styles.filterOptionText,
+                          filtros.tipo === option.value &&
+                            styles.filterOptionTextActive,
+                        ]}>
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View style={styles.filterRow}>
+                <View style={styles.filterField}>
+                  <Text style={styles.filterLabel}>Data Inicio</Text>
+                  <TextInput
+                    value={filtros.dataInicio}
+                    onChangeText={(value) =>
+                      setFiltros((prev) => ({ ...prev, dataInicio: value }))
+                    }
+                    placeholder="YYYY-MM-DD"
+                    style={styles.filterInput}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+
+                <View style={styles.filterField}>
+                  <Text style={styles.filterLabel}>Data Fim</Text>
+                  <TextInput
+                    value={filtros.dataFim}
+                    onChangeText={(value) =>
+                      setFiltros((prev) => ({ ...prev, dataFim: value }))
+                    }
+                    placeholder="YYYY-MM-DD"
+                    style={styles.filterInput}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.filterRow}>
+                <View style={styles.filterField}>
+                  <Text style={styles.filterLabel}>Qtd Min (BTC)</Text>
+                  <TextInput
+                    value={filtros.quantidadeMin}
+                    onChangeText={(value) =>
+                      setFiltros((prev) => ({
+                        ...prev,
+                        quantidadeMin: value,
+                      }))
+                    }
+                    placeholder="0.001"
+                    keyboardType="numeric"
+                    style={styles.filterInput}
+                  />
+                </View>
+
+                <View style={styles.filterField}>
+                  <Text style={styles.filterLabel}>Qtd Max (BTC)</Text>
+                  <TextInput
+                    value={filtros.quantidadeMax}
+                    onChangeText={(value) =>
+                      setFiltros((prev) => ({
+                        ...prev,
+                        quantidadeMax: value,
+                      }))
+                    }
+                    placeholder="0.1"
+                    keyboardType="numeric"
+                    style={styles.filterInput}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.filterRow}>
+                <View style={styles.filterField}>
+                  <Text style={styles.filterLabel}>Preco Min (USD)</Text>
+                  <TextInput
+                    value={filtros.precoMin}
+                    onChangeText={(value) =>
+                      setFiltros((prev) => ({ ...prev, precoMin: value }))
+                    }
+                    placeholder="20000"
+                    keyboardType="numeric"
+                    style={styles.filterInput}
+                  />
+                </View>
+
+                <View style={styles.filterField}>
+                  <Text style={styles.filterLabel}>Preco Max (USD)</Text>
+                  <TextInput
+                    value={filtros.precoMax}
+                    onChangeText={(value) =>
+                      setFiltros((prev) => ({ ...prev, precoMax: value }))
+                    }
+                    placeholder="70000"
+                    keyboardType="numeric"
+                    style={styles.filterInput}
+                  />
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.clearFilters}
+                onPress={() =>
+                  setFiltros({
+                    tipo: 'todos',
+                    dataInicio: '',
+                    dataFim: '',
+                    quantidadeMin: '',
+                    quantidadeMax: '',
+                    precoMin: '',
+                    precoMax: '',
+                  })
+                }>
+                <Text style={styles.clearFiltersText}>Limpar filtros</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {movimentacoesFiltradas.length === 0 ? (
             <View style={[styles.card, { alignItems: 'center', padding: 30 }]}>
               <Text style={{ fontSize: 40, marginBottom: 10 }}>📭</Text>
-              <Text style={styles.muted}>Nenhuma movimentação registrada</Text>
+              <Text style={styles.muted}>
+                Nenhuma movimentação encontrada
+              </Text>
             </View>
           ) : (
-            movimentacoes_de_lote
+            movimentacoesFiltradas
               .slice()
               .reverse()
               .map((mov, idx) => {
@@ -513,7 +732,7 @@ export default function App() {
                         </Text>
                       </View>
                       <Text style={styles.movNumber}>
-                        #{movimentacoes_de_lote.length - idx}
+                        #{movimentacoesFiltradas.length - idx}
                       </Text>
                     </View>
 
@@ -867,5 +1086,97 @@ const styles = StyleSheet.create({
   movTimestamp: {
     fontSize: 11,
     color: '#999',
+  },
+  filterToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#0066cc',
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  filterToggleText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  filtersCard: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  filtersTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 10,
+    color: '#334155',
+  },
+  filterGroup: {
+    marginBottom: 12,
+  },
+  filterOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  filterOption: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#cbd5f5',
+    backgroundColor: '#f8fafc',
+  },
+  filterOptionActive: {
+    backgroundColor: '#1d4ed8',
+    borderColor: '#1d4ed8',
+  },
+  filterOptionText: {
+    fontSize: 11,
+    color: '#334155',
+    fontWeight: '600',
+  },
+  filterOptionTextActive: {
+    color: '#fff',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  filterField: {
+    flex: 1,
+  },
+  filterLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#64748b',
+    marginBottom: 6,
+  },
+  filterInput: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 12,
+    backgroundColor: '#fff',
+  },
+  clearFilters: {
+    backgroundColor: '#64748b',
+    paddingVertical: 9,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  clearFiltersText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 12,
   },
 });
